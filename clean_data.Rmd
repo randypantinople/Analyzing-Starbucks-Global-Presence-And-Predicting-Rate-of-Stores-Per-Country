@@ -1,0 +1,123 @@
+---
+title: "data_clean"
+author: "randy"
+date: "8/2/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(tidyverse)
+library(stringr)
+```
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+starbucks = read.csv('starbucks.csv', encoding="UTF-8", stringsAsFactors=FALSE)
+
+head(starbucks, 5)
+
+```
+
+
+
+```{r}
+starbucks$store_count = rep(1, dim(starbucks)[1])
+
+starbucks= starbucks%>% 
+  select(c(-Postcode, -Phone.Number))
+  
+head(starbucks, 5)
+
+```
+
+```{r}
+code = read.csv('country_code.csv')
+
+code= code%>% 
+  mutate(Country_Name= word(Country_Name, 1, sep=','))
+
+code = code %>% 
+  mutate(Country_Name= ifelse(Country_Name=='Azerbaijan' & Continent_Name=='Asia', '', Country_Name)) %>% 
+  mutate(Country_Name= ifelse(Country_Name=='Georgia' & Continent_Name=='Asia', '', Country_Name)) %>% 
+  mutate(Country_Name= ifelse(Country_Name=='Kazakhstan' & Continent_Name=='Asia', '', Country_Name)) %>% 
+  mutate(Country_Name= ifelse(Country_Name=='Russian Federation' & Continent_Name=='Asia', '', Country_Name)) %>% 
+  mutate(Country_Name= ifelse(Country_Name=='Armenia' & Continent_Name=='Asia', '', Country_Name)) %>% 
+mutate(Country_Name= ifelse(Country_Name=='Korea' , 'South Korea',Country_Name))
+
+
+
+code = code %>% 
+  filter(Country_Name != 'NULL')
+
+code= rename(code, continent= 'Continent_Name', 
+             Country= 'Two_Letter_Country_Code')
+
+code = code %>% 
+  filter(Country_Name != '')
+
+
+head(code, 5)
+unique(code$Country_Name)
+```
+
+
+```{r}
+#Merge code and starbucks so we can have a complete for the country
+starbucks2= full_join(starbucks, code, by='Country')
+
+starbucks2= starbucks2 %>% 
+  mutate(store_count= ifelse(is.na(store_count), 0, store_count))
+
+names(starbucks2) = tolower(names(starbucks2))
+
+
+
+starbucks2= rename(starbucks2, code= 'country',
+                   country ='country_name')
+
+
+head(starbucks2, 5)
+
+write.csv(starbucks2, 'starbucks2.csv')
+
+
+
+
+```
+
+
+
+```{r, echo=F}
+population = read.csv('world_population.csv')
+
+population= population %>%
+  select(density, land_area, population, yearly_change, country)
+```
+
+
+```{r}
+world_pop = read_csv('population.csv')
+
+getwd()
+```
+
+
+```{r, echo=FALSE}
+gdp= read.csv('gdp.csv')
+
+gdp$ï..country
+
+gdp %>% 
+  select(contains(gdp$ï..country, 'taiwan')
+         
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
