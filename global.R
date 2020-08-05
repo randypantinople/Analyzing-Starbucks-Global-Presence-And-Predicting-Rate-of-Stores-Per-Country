@@ -1,3 +1,22 @@
+library(shiny)
 library(shinydashboard)
-starbucks2 = read.csv('./data/starbucks2.csv')
-starbucks2
+library(googleVis)
+library(dplyr)
+library(tibble)
+library(tidyverse)
+library(DT)
+library(plotly)
+
+
+
+
+starbucks3 = read.csv('./data/starbucks3.csv', stringsAsFactors = F)
+
+starbucks4 = starbucks3 %>% 
+  group_by(country) %>% 
+  summarise(num_store= sum(store_count))
+
+
+length(unique(starbucks3$city))
+
+

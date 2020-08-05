@@ -19,7 +19,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
-starbucks = read.csv('starbucks.csv', encoding="UTF-8", stringsAsFactors=FALSE)
+starbucks = read.csv('./data/starbucks.csv', encoding="UTF-8", stringsAsFactors=FALSE)
 
 head(starbucks, 5)
 
@@ -33,12 +33,12 @@ starbucks$store_count = rep(1, dim(starbucks)[1])
 starbucks= starbucks%>% 
   select(c(-Postcode, -Phone.Number))
   
-head(starbucks, 5)
+unique(starbucks$Country)
 
 ```
 
 ```{r}
-code = read.csv('country_code.csv')
+code = read.csv('./data/country_code.csv')
 
 code= code%>% 
   mutate(Country_Name= word(Country_Name, 1, sep=','))
@@ -49,7 +49,8 @@ code = code %>%
   mutate(Country_Name= ifelse(Country_Name=='Kazakhstan' & Continent_Name=='Asia', '', Country_Name)) %>% 
   mutate(Country_Name= ifelse(Country_Name=='Russian Federation' & Continent_Name=='Asia', '', Country_Name)) %>% 
   mutate(Country_Name= ifelse(Country_Name=='Armenia' & Continent_Name=='Asia', '', Country_Name)) %>% 
-mutate(Country_Name= ifelse(Country_Name=='Korea' , 'South Korea',Country_Name))
+mutate(Country_Name= ifelse(Country_Name=='Korea' , 'South Korea',Country_Name)) %>% 
+  mutate(Country_Name= ifelse(Country_Name=='United States of America' , 'United States',Country_Name))
 
 
 
@@ -77,18 +78,17 @@ starbucks2= starbucks2 %>%
 
 names(starbucks2) = tolower(names(starbucks2))
 
-
-
 starbucks2= rename(starbucks2, code= 'country',
                    country ='country_name')
 
 
 head(starbucks2, 5)
-
-write.csv(starbucks2, 'starbucks2.csv')
-
+```
 
 
+```{r}
+
+write.csv(starbucks2, './data/starbucks3.csv')
 
 ```
 
