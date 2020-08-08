@@ -6,17 +6,22 @@ library(tibble)
 library(tidyverse)
 library(DT)
 library(plotly)
+library(ggplot2)
+library(GGally)
+
+
+star = read.csv('./data/star.csv',encoding = "UTF-8", stringsAsFactors = F)
+
+
+star1=star %>% 
+  filter(store_count>0)
+
+
+
+head(star1)
 
 
 
 
-starbucks3 = read.csv('./data/starbucks3.csv', stringsAsFactors = F)
-
-starbucks4 = starbucks3 %>% 
-  group_by(country) %>% 
-  summarise(num_store= sum(store_count))
-
-
-length(unique(starbucks3$city))
 
 

@@ -11,6 +11,7 @@ library(dplyr)
 library(tidyr)
 library(tidyverse)
 library(stringr)
+
 ```
 
 
@@ -19,9 +20,10 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
-starbucks = read.csv('./data/starbucks.csv', encoding="UTF-8", stringsAsFactors=FALSE)
 
-head(starbucks, 5)
+starbucks = read.csv('./data/starbucks2.csv', stringsAsFactors=FALSE)
+
+
 
 ```
 
@@ -30,11 +32,10 @@ head(starbucks, 5)
 ```{r}
 starbucks$store_count = rep(1, dim(starbucks)[1])
 
-starbucks= starbucks%>% 
+star1= starbucks%>% 
   select(c(-Postcode, -Phone.Number))
   
-unique(starbucks$Country)
-
+head(star1)
 ```
 
 ```{r}
@@ -65,59 +66,82 @@ code = code %>%
 
 
 head(code, 5)
-unique(code$Country_Name)
+
 ```
 
 
 ```{r}
 #Merge code and starbucks so we can have a complete for the country
-starbucks2= full_join(starbucks, code, by='Country')
+star2= full_join(star1, code, by='Country')
 
-starbucks2= starbucks2 %>% 
+star3= star2 %>% 
   mutate(store_count= ifelse(is.na(store_count), 0, store_count))
 
-names(starbucks2) = tolower(names(starbucks2))
+names(star3) = tolower(names(star3))
 
-starbucks2= rename(starbucks2, code= 'country',
+star3= rename(star3, code= 'country',
                    country ='country_name')
 
 
-head(starbucks2, 5)
 ```
 
 
 ```{r}
+data1 = read.csv('./data/urban_pop.csv', encoding="UTF-8", stringsAsFactors=FALSE)
 
-write.csv(starbucks2, './data/starbucks3.csv')
+data1 = rename(data1, "country"=X.U.FEFF.country)
 
-```
-
-
-
-```{r, echo=F}
-population = read.csv('world_population.csv')
-
-population= population %>%
-  select(density, land_area, population, yearly_change, country)
+star4=left_join(star3, data1, by='country')
+head(star1)
 ```
 
 
 ```{r}
-world_pop = read_csv('population.csv')
+data2 = read.csv('./data/gdp_per_capita.csv', encoding="UTF-8", stringsAsFactors=FALSE)
 
-getwd()
+data2 = rename(data2, "country"=X.U.FEFF.country)
+head(data2)
 ```
 
 
-```{r, echo=FALSE}
-gdp= read.csv('gdp.csv')
+```{r}
+star5=left_join(star4, data2, by='country')
 
-gdp$ï..country
-
-gdp %>% 
-  select(contains(gdp$ï..country, 'taiwan')
-         
+head(star5)
 
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+```{r}
+data3 = read.csv('./data/business.csv', encoding="UTF-8", stringsAsFactors=FALSE)
+
+data3 = rename(data3, "country"=X.U.FEFF.country)
+
+
+star6=left_join(star5, data3, by='country')
+
+head(star6)
+
+```
+```{r}
+data4 = read.csv('./data/median.csv', encoding="UTF-8", stringsAsFactors=FALSE)
+
+star7=left_join(star6, data4, by='country')
+
+```
+
+
+
+```{r}
+write.csv(star7, "./data/star.csv")
+```
+
+```{r}
+revenue= read.csv("./data/revenue.csv", encoding = 'UTF-8', stringsAsFactors = F)
+
+revenue = rename(revenue, year="X.U.FEFF.year")
+
+write.csv(revenue, "./data/revenue.csv")
+```
+
