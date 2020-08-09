@@ -30,10 +30,14 @@ shinyUI(dashboardPage(skin='green',
       
       menuItem(" Check Model Conditions", icon=icon('check'),
                menuSubItem("Linear Relationship", tabName = "linear"),
-               menuSubItem("Normal Residuals", tabName="normal")),
+               menuSubItem("Normal Residuals", tabName="normal"),
+               menuSubItem("Variability", tabName='variance')),
+              
       br(),
       
-      menuItem('About Me', tabName= 'about', icon= icon('user-tie'))
+      menuItem("Prediction", tabName = "predict", icon=icon("calculator")),
+      
+      menuItem('About Me', tabName= 'me', icon= icon('user-tie'))
     
     )
   ),
@@ -62,7 +66,7 @@ shinyUI(dashboardPage(skin='green',
                 column(3,
                       selectizeInput(inputId='selected',
                                       label='Select a country',
-                                      choices=unique(star1$country),
+                                      choices=unique(star[star$store_count>0,]$country),
                                       selected='Malaysia'
                                       )),
                 
@@ -90,10 +94,10 @@ shinyUI(dashboardPage(skin='green',
       
       tabItem(tabName = "correlation",
               fluidRow(
-              br(),
-              br(),
+                br(),
+                br(),
                 column(6,
-                      plotlyOutput("gdp")),
+                       plotlyOutput("gdp")),
                 column(6,
                        plotlyOutput("population"))),
               br(),
@@ -103,11 +107,11 @@ shinyUI(dashboardPage(skin='green',
                 column(4,
                        plotlyOutput("med_age")),
                 column(4,
-                       plotlyOutput("land_area")),
+                       plotlyOutput("density")),
                 column(4,
                        plotlyOutput("bus_score")))
-            
-              ),
+              
+      ),
       
       tabItem(tabName = "collinearity",
               fluidRow(
@@ -116,163 +120,163 @@ shinyUI(dashboardPage(skin='green',
                 
                 plotOutput("coll")
               )),
+             
       
       tabItem(tabName ="backward",
               fluidRow(
                 br(),
                 br(),
                 
-                column(4,
+                column(6,
                   h3(strong("Step 1: Full Model"),
                          br(),
-                         "num_store = 169.4",
+                         "store rate = -2.500e-5",
                          br(),
-                                  "-2.522e-6 population",
-                         
-                                  "+5.884e-10gdp",
+                                  "1.625e-10 gdp",
+                        br(),
+                                  "-1.15e-15 pop",
+                        br(),
+                                  "+3.525e-7 bus_score",
                          br(),
-                                  "-36.96 med_age",
+                                  "+1.347e-6asia",
                          br(),
-                                  "+7.31asia",
+                                  "-8.19 europe",
                          br(),
-                                  "+23.32 europe",
+                                  "+8.49e-6 northamerica",
                          br(),
-                                  "+412.3 northamerica",
+                                  "-9.1e-6oceania",
                          br(),
-                                  "-255.9oceania",
-                         br(),
-                                  "+80.96 south america",
-                         br(),
-                                  "+13.3 bus_score",
-                         br(),
-                         "-9.558e-6 land_area",
+                                  "+1.192 south america",
                          br(),
                          br(),
-                        
-                         h3(strong("Adjusted R-squared = 0.8975")))),
+                         h3(strong("Adjusted R-squared = 0.4263")))),
                 
                 
-                column(4,
-                  h3(strong("Step 2: Remove Continent"),
-                         br(),
-                         "num_store = 799.2",
-                         br(),
-                         "-2.696e-6 population",
-                         br(),
-                         "+6.07e-10gdp",
-                         br(),
-                         "-39.5 med_age",
-                         br(),
-                         "+7.12 bus_score",
-                         br(),
-                         "-1.19e-5 land_area",
-                         br(),
-                         br(),
-                         
-                         h3(strong("Adjusted R-squared = 0.8995")))),
+                column(6,
+                  h3(strong("Step 2: Remove Business Score"),
+                     br(),
+                     "store rate = -2.687e-6",
+                     br(),
+                     "2.64e-10 gdp",
+                     br(),
+                     "-1.346-15 pop",
+                     br(),
+                     "+8.815e-7asia",
+                     br(),
+                     "-5.548e-6 europe",
+                     br(),
+                     "+8.588e-6 northamerica",
+                     br(),
+                     "-6.65e-6oceania",
+                     br(),
+                     "1.34e-15 south america",
+                     br(),
+                     br(),
+                     
+                     h3(strong("Adjusted R-squared = 0.5229")))))),
               
-              
-                column(4,
-                  h3(strong("Step 3: Remove Land Area"),
-                         br(),
-                         "num_store = 788.8",
-                         br(),
-                         "-2.671e-6 population",
-                         br(),
-                         "+6.032e-10gdp",
-                         br(),
-                         "-39.36 med_age",
-                         br(),
-                         "+7.054 bus_score",
-                         br(),
-                         br(),
-                         
-                         h3(strong("Adjusted R-squared = 0.9008"))))
-             
-                
-                
-                
-                       )),
       
       tabItem(tabName ="forward",
               fluidRow(
                 br(),
                 br(),
-                column(3,
+                column(4,
                        h3(strong("Step 1: Fit GDP"),
                           br(),
-                          "num_store = -172.7",
+                          "num_store = -1.15",
                           br(),
-                          "+4.797e-10gdp",
+                          "+2.11e-4gdp",
                        br(),
                        br(),
-                       h3(strong("Adjusted R-squared = 0.804")))),
+                       h3(strong("Adjusted R-squared = 0.3489")))),
                 
-                column(3,
-                      h3(strong("Step 2: Add Population"),
+                column(4,
+                      h3(strong("Step 2: Add Continent"),
                          br(),
-                         "num_store = -102.1",
+                         "num_store = -2.57",
                          br(),
-                          "+5.844e-10 gdp",
+                          "+2.62e-4 gdp",
                          br(),
-                          "-2.431e-6population",
+                          "+1.07 asia",
+                         br(),
+                         "-5.52 europe",
+                         br(),
+                         "8.605nort america",
+                         br(),
+                         "-6.644 oceania",
+                         br(),
+                         "0.186 south america",
                          br(),
                          br(),
-                         h3(strong("Adjusted R-squared = 0.8865")))),
+                         h3(strong("Adjusted R-squared = 0.5296")))),
                 
-                column(3,
-                       h3(strong("Step 3: Add Median Age"),
+                column(4,
+                       h3(strong("Step 3: Add Population"),
                           br(),
-                          "num_store = -1079",
+                          "store rate = -2.687e-6",
                           br(),
-                          "+6.049e-10 gdp",
+                          "2.64e-10 gdp",
                           br(),
-                          "-32.9 med_age",
+                          "-1.346-15 pop",
+                          br(),
+                          "+8.815e-7asia",
+                          br(),
+                          "-5.548e-6 europe",
+                          br(),
+                          "+8.588e-6 northamerica",
+                          br(),
+                          "-6.65e-6oceania",
+                          br(),
+                          "1.34e-15 south america",
                           br(),
                           br(),
-                          h3(strong("Adjusted R-squared = 0.9904")))),
+                          h3(strong("Adjusted R-squared = 0.5229")))))),
                 
-                
-                column(3,
-                       h3(strong("Step 4: Add Business Score"),
-                          br(),
-                          "num_store = 788.8",
-                          br(),
-                          "-2.671e-6 population",
-                          br(),
-                          "+6.032e-10gdp",
-                          br(),
-                          "-39.36 med_age",
-                          br(),
-                          "+7.054 bus_score",
-                          br(),
-                          br(),
-                          h3(strong("Adjusted R-squared = 0.9008"))))
-                
-                       
-              )),
-      
+          
       tabItem(tabName="linear",
               fluidRow(
                 column(6,
                        plotlyOutput("linear_gdp")),
                 column(6,
-                       plotlyOutput("linear_pop"))),
+                       plotlyOutput("linear_pop")))),
               
-              fluidRow(
-                column(6,
-                       plotlyOutput("linear_bus")),
-                column(6,
-                       plotlyOutput("linear_med")))),
+      
       tabItem(tabName = "normal",
               fluidRow(
                 column(6,
                        plotlyOutput("normal_hist")),
                 column(6,
-                       plotOutput("normal_qqnorm"))))
+                       plotOutput("normal_qqnorm")))),
+      
+      tabItem(tabName="variance",
+              fluidRow(
+                br(),
+                br(),
+                plotlyOutput("vary")
+              )),
+      
+      tabItem(tabName = "predict",
+              br(),
+              fluidRow(
+              column(4,
+                     selectizeInput(inputId='pick',
+                                    label='Select a country',
+                                    choices=unique(star1$country))),
+              column(4,
+                     uiOutput("info")),
               
+              column(4,
+                     uiOutput("result")))),
+      
+      
+              
+            
+                     
+      
+    
                 
               ))
+  
     
     
     )

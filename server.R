@@ -27,11 +27,13 @@ function(input,output){
   
   
   output$plot1 = renderGvis({
-   star2= star1 %>% 
+    df_star = star %>% 
+      filter(store_count>0) %>% 
       group_by(country) %>% 
-      summarise(num_store=n())
-   
-   gvisGeoChart(data=star2,
+      summarise(num_store= sum(store_count))
+      
+    
+   gvisGeoChart(data=df_star,
                 locationvar = "country",
                 sizevar = 'num_store',
                 options=list(width=800,
@@ -41,48 +43,51 @@ function(input,output){
   
   
   output$home_bar = renderGvis({
-    star3=star1 %>% 
+    
+    home_bar=star%>% 
       group_by(country) %>% 
-      summarise(num_store=n()) %>% 
+      summarise(num_store= sum(store_count)) %>% 
       arrange(desc(num_store)) %>% 
       head(10)
     
-
-    gvisBarChart(data=star3,
+    gvisBarChart(data=home_bar,
                  xvar='country',
                  yvar ='num_store',
                  options=list(width=500,
                               height=600,
                               legend='none',
-                              title='Top 10 Countries with Starbucks Locations'))
+                              title='Top Countries with Starbucks Locations'))
     
   })
   
   
   output$box= renderPlotly({
-      ggplotly(star1 %>% 
-      filter(store_count >0 ,country==input$selected) %>% 
-      ggplot(aes(x=ownership_type,
-                 y=store_count,
+    
+    home_box = star %>% 
+      filter(country==input$selected) %>% 
+      group_by(country, ownership_type) %>% 
+      summarise(num_store=  sum(store_count))
+    
+      ggplotly(ggplot(data=home_box,aes(x=ownership_type,
+                 y=num_store,
                  fill=ownership_type))+
       geom_col()+
       xlab("type of ownership")+
       ylab("number of stores"))
          
-     
 })
   
   
   
   output$bar= renderGvis({
-    star3 = star1 %>% 
-      filter(store_count>0 , country==input$selected) %>% 
+    bar_city = star %>% 
+      filter( country==input$selected) %>% 
       group_by(city) %>% 
       summarise(count=n()) %>% 
       arrange(desc(count)) %>% 
       head(10)
     
-    gvisBarChart(data= star3,
+    gvisBarChart(data= bar_city,
                  xvar='city',
                  yvar='count',
                  options=list(title="Top Cities With Starbucks Locations",
@@ -94,20 +99,20 @@ function(input,output){
   })
   
   output$country = renderUI({
-    nation= star1 %>% 
+    nation= star%>% 
       filter(country==input$selected) %>% 
-      summarise(count=sum(store_count))
-    
+      summarise(count= sum(store_count))
+   
     infoBox(
       h3(nation), "Stores",
       color='green',
-      icon=icon('flag'),
+      icon=icon('store'),
       width=3
     )
   })
   
   output$num_city = renderUI({
-    city= star1 %>% 
+    city= star %>% 
       filter(country==input$selected) 
       
     count= length((unique(city$city)))
@@ -122,114 +127,125 @@ function(input,output){
   
   output$store_urban_pop = renderUI({
     
-    urban= star1%>% 
+    urban= star%>% 
       filter(country==input$selected) %>% 
       group_by(country, population) %>% 
       summarise(count=sum(store_count))
     
-    store_urban = round((urban$count*1e6)/urban$population, 2)
+    store_urban = round(urban$count*1e6/urban$population, 2)
  
     infoBox(
-      h3(paste(store_urban, "Store/s", sep=" ")), "Per 1M People",
+      h3(paste(store_urban, "Store", sep=" ")), "Per 1M People",
       color='orange',
-      icon=icon('store'),
+      icon=icon('street-view'),
       width=3
     )
   })
   
   
   output$gdp = renderPlotly({
-      model =star1 %>% 
-      group_by(country, gdp) %>% 
-      summarise(num_store= sum(store_count))
-      
-      model_lm = lm(num_store~gdp , data=model)
-   
-      ggplotly(ggplot(model_lm, aes(x=log10(gdp), y=log10(num_store)))+
-      geom_point()+
-      geom_smooth(method='lm')+
-      ylab("number of stores(log10)")+
-      xlab("GDP(log10)")+
-      ggtitle("Number Of Stores vs. GDP"))
-      
-})
+    model =star %>%
+      filter(store_count>0) %>% 
+      group_by(country, gdp_per_capita, population) %>% 
+      summarise(num_store=sum(store_count)) %>% 
+      mutate(store_rate= (num_store*1e6)/population) 
+    
+    
+    model_lm = lm(store_rate~gdp_per_capita , data=model)
+    
+    ggplotly(ggplot(model_lm, aes(x=log10(gdp_per_capita), y=log(store_rate)))+
+               geom_point()+
+               geom_smooth(method='lm')+
+               ylab("Store Rate(log10)")+
+               xlab("GDP per Capita(log10)")+
+               ggtitle("Store Rate vs. GDP per Capita"))
+    
+  })
   
   output$population = renderPlotly({
-   
-    model =star1 %>% 
-      group_by(country, population) %>% 
-      summarise(num_store= sum(store_count))
     
-    model_lm = lm(num_store~population , data=model)
-      
-   ggplotly(ggplot(data=model_lm, aes(x=log10(population), y=log10(num_store)))+
-   geom_point()+
-   geom_smooth(method='lm')+
-   ylab("number of stores(log10)")+
-   xlab("population(log10)")+
-   ggtitle("Number Of Stores vs. Population"))
+    model =star %>%
+      filter(store_count>0) %>% 
+      group_by(country,  population) %>% 
+      summarise(num_store=sum(store_count)) %>% 
+      mutate(store_rate= (num_store*1e6)/population) 
+    
+    model_lm = lm(store_rate~population , data=model)
+    
+    ggplotly(ggplot(data=model_lm, aes(x=log10(population), y=log10(store_rate)))+
+               geom_point()+
+               geom_smooth(method='lm')+
+               ylab("Store Rate(log10)")+
+               xlab("population(log10)")+
+               ggtitle("Number Of Stores vs. Population"))
     
   })
   
   output$med_age = renderPlotly({
-    model = star1 %>% 
-               group_by(country, med_age) %>% 
-               summarise(num_store= sum(store_count))
+    model =star %>%
+      filter(store_count>0) %>% 
+      group_by(country, med_age, population) %>% 
+      summarise(num_store=sum(store_count)) %>% 
+      mutate(store_rate= (num_store*1e6)/population) 
     
-    model_lm = lm(num_store~med_age , data=model)
-      
-      ggplotly(ggplot(data=model_lm,aes(x=log10(med_age), y=log10(num_store)))+
-       geom_point()+
-       geom_smooth(method="lm")+
-       ylab("number of stores(log10)")+
-       xlab("median age(log10)")+
-       ggtitle("Number Of Stores vs. Median Age"))
+    model_lm = lm(store_rate~med_age , data=model)
+    
+    ggplotly(ggplot(data=model_lm,aes(x=log10(med_age), y=log10(store_rate)))+
+               geom_point()+
+               geom_smooth(method="lm")+
+               ylab("store rate(log10)")+
+               xlab("median age(log10)")+
+               ggtitle("Store Rate vs. Median Age"))
     
   })
   
-  output$land_area = renderPlotly({
-    model = star1 %>% 
-           group_by(country, land_area) %>% 
-           summarise(num_store= sum(store_count))
+  output$density = renderPlotly({
+    model =star %>%
+      filter(store_count>0) %>% 
+      group_by(country, density, population) %>% 
+      summarise(num_store=sum(store_count)) %>% 
+      mutate(store_rate= (num_store*1e6)/population) 
     
+    model_lm = lm(store_rate~density , data=model)
     
-    model_lm = lm(num_store~land_area , data=model)
-    
-           ggplotly(ggplot(data=model_lm, aes(x=log10(land_area), y=log10(num_store)))+
-           geom_point()+
-           geom_smooth(method="lm")+
-           ylab("number of stores(log10)")+
-           xlab("land area(log10)")+
-           ggtitle("Number Of Stores vs. Land Area"))
+    ggplotly(ggplot(data=model_lm, aes(x=log10(density), y=log10(store_rate)))+
+               geom_point()+
+               geom_smooth(method="lm")+
+               ylab("Store Rate(log10)")+
+               xlab("density(log10)")+
+               ggtitle("Store Rate vs. Density"))
     
   })
   
   output$bus_score = renderPlotly({
-    model= star1 %>% 
-         group_by(country, bus_score) %>% 
-         summarise(num_store= sum(store_count)) 
+    model =star %>%
+      filter(store_count>0) %>% 
+      group_by(country, bus_score, population) %>% 
+      summarise(num_store=sum(store_count)) %>% 
+      mutate(store_rate= (num_store*1e6)/population) 
     
+    model_lm = lm(store_rate~bus_score , data=model) 
     
-    model_lm = lm(num_store~bus_score , data=model) 
-      
-         ggplotly(ggplot(data= model_lm,aes(x=log10(bus_score), y=log10(num_store)))+
-         geom_point()+
-         geom_smooth(method="lm")+
-         ylab("number of stores(log10)")+
-         xlab("business score(log10)")+
-         ggtitle("Number Of Stores vs. Business Score"))
+    ggplotly(ggplot(data= model_lm,aes(x=log10(bus_score), y=log10(store_rate)))+
+               geom_point()+
+               geom_smooth(method="lm")+
+               ylab("Store Rate(log10)")+
+               xlab("business score(log10)")+
+               ggtitle("Store Rate vs. Business Score"))
     
   })
   
- 
-
   output$coll = renderPlot({
   
-        multi= star1 %>% 
-         group_by(country, med_age, bus_score, population, gdp, land_area) %>% 
-         summarise(num_store= sum(store_count))
+    model =star %>%
+      filter(store_count>0) %>% 
+      group_by(country, med_age, population, gdp_per_capita, density, bus_score) %>% 
+      summarise(num_store=sum(store_count)) %>% 
+      mutate(store_rate= (num_store*1e6)/population) 
+    
+
       
-        ggcorr(multi[-1], palette = "RdBu", label = TRUE)
+        ggcorr(model[c(-1,-7)],palette = "RdBu", label = TRUE)
          
               
   })
@@ -237,28 +253,36 @@ function(input,output){
   
   output$linear_gdp= renderPlotly({
     
-    df = star1 %>% 
-      group_by(country, store_count, gdp, population,bus_score, med_age) %>% 
-      summarise(num_store= sum(store_count))
-      
-     
+    model =star %>%
+      filter(store_count>0) %>% 
+      group_by(country, gdp_per_capita,continent, population) %>% 
+      summarise(num_store=sum(store_count)) %>% 
+      mutate(store_rate= num_store/population) 
     
-    final_model= lm(num_store ~ gdp + population + bus_score + med_age, data=df)
-    
+    model_lm = lm(store_rate~gdp_per_capita+ continent+ population, data=model) 
    
-  ggplotly(ggplot(data =final_model, aes(x=log10(gdp), y=final_model$residuals))+
+  ggplotly(ggplot(data =model_lm, aes(x=log(gdp_per_capita), y=model_lm$residuals))+
       geom_point()+
       geom_hline(yintercept = 0, linetype="dashed")+
-      xlab("GDP")+
+      xlab("GDP per capita")+
       ylab("residuals")+
-      ggtitle("GDP vs Residuals") +
+      ggtitle("GDP per Capita vs Residuals") +
       theme(plot.title = element_text(hjust = 0.5, size=20)))
   })
   
   
   output$linear_pop= renderPlotly({
     
-    ggplotly(ggplot(data =final_model, aes(x=log10(population), y=final_model$residuals))+
+    model =star %>%
+      filter(store_count>0) %>% 
+      group_by(country, gdp_per_capita,continent, population) %>% 
+      summarise(num_store=sum(store_count)) %>% 
+      mutate(store_rate= num_store/population) 
+    
+    model_lm = lm(store_rate~gdp_per_capita+ continent+ population , data=model) 
+  
+    
+    ggplotly(ggplot(data =model_lm, aes(x=log(population), y=model_lm$residuals))+
                geom_point()+
                geom_hline(yintercept = 0, linetype="dashed")+
                xlab("population")+
@@ -268,41 +292,117 @@ function(input,output){
   })
   
   
-  output$linear_bus= renderPlotly({
-    
-    ggplotly(ggplot(data =final_model, aes(x=bus_score, y=final_model$residuals))+
-               geom_point()+
-               geom_hline(yintercept = 0, linetype="dashed")+
-               xlab("business score")+
-               ylab("residuals")+
-               ggtitle("Business Score vs Residuals") +
-               theme(plot.title = element_text(hjust = 0.5, size=20)))
-  })
+ 
   
-  output$linear_med= renderPlotly({
-    
-    ggplotly(ggplot(data =final_model, aes(x=med_age, y=final_model$residuals))+
-               geom_point()+
-               geom_hline(yintercept = 0, linetype="dashed")+
-               xlab("median age")+
-               ylab("residuals")+
-               ggtitle("Median Age Score vs Residuals") +
-               theme(plot.title = element_text(hjust = 0.5, size=20)))
-  })
   
   output$normal_hist= renderPlotly({
     
-    ggplotly(ggplot(data =final_model, aes(x=final_model$residuals))+
+    model =star %>%
+      filter(store_count>0) %>% 
+      group_by(country, gdp_per_capita,continent, population) %>% 
+      summarise(num_store=sum(store_count)) %>% 
+      mutate(store_rate= num_store/population) 
+    
+    model_lm = lm(store_rate~gdp_per_capita+ continent+ population , data=model) 
+    
+    ggplotly(ggplot(data =model_lm, aes(x=model_lm$residuals))+
                geom_histogram()+
                xlab("residuals")+
                ggtitle("Distribution Of Residuals")) 
             
 })
   
+  
+  
   output$normal_qqnorm= renderPlot({
     
-    qqnorm(model$residuals)
-    qqline(model$residuals)
+    model =star %>%
+      filter(store_count>0) %>% 
+      group_by(country, gdp_per_capita,continent, population) %>% 
+      summarise(num_store=sum(store_count)) %>% 
+      mutate(store_rate= num_store/population) 
+    
+    model_lm = lm(store_rate~gdp_per_capita+ continent + population, data=model) 
+    
+    qqnorm(model_lm$residuals)
+    qqline(model_lm$residuals)
   })
+  
+  
+  
+  output$vary= renderPlotly({
+    
+    model =star %>%
+      filter(store_count>0) %>% 
+      group_by(country, gdp_per_capita,continent, population) %>% 
+      summarise(num_store=sum(store_count)) %>% 
+      mutate(store_rate= num_store/population) 
+    
+    model_lm = lm(store_rate~gdp_per_capita+ continent + population, data=model) 
+    
+    
+    ggplot(data =model_lm, aes(x=model_lm$fitted.values, y=model_lm$residuals))+
+      geom_jitter(shape=1) +
+      geom_hline(yintercept = 0, linetype="dashed")+
+      xlab("Predicted Values")+
+      ylab("Model's Residuals")+
+      ggtitle("Predicted Values vs Model's Residuals") +
+      theme(plot.title = element_text(hjust = 0.5, size=20))
+    
+  })
+  
+  output$info = renderUI({
+    df= star1 %>% 
+      filter(country==input$pick)
+    
+    gdp= df$gdp_per_capita
+    pop= df$population
+    region= df$continent
+      
+      box(
+        input$pick,
+        br(),
+        br(),
+        paste("GDP per Capita", gdp , sep=" :"),
+        br(),
+        br(),
+        paste("Population", pop, sep=" :"),
+        br(),
+        br(),
+        paste("Continent", region, sep= " :"))
+  })
+  
+  output$result = renderUI({
+    df= star1 %>% 
+      filter(country==input$pick)
+    
+    gdp= df$gdp_per_capita
+    pop= df$population
+    region= df$continent
+    
+   df_predict= data.frame(gdp_per_capita=gdp, population=pop, continent=region)
+  
+   
+   model =star %>%
+     filter(store_count>0) %>% 
+     group_by(country, gdp_per_capita,continent, population) %>% 
+     summarise(num_store=sum(store_count)) %>% 
+     mutate(store_rate= num_store/population) 
+   
+   model_lm = lm(store_rate~gdp_per_capita+ continent + population, data=model) 
+   
+   result = predict(model_lm, df_predict)* 1e6
+    
+    box(
+      h1(strong("Prediction")),
+      br(),
+      br(),
+      paste(result , " Stores" , sep=":"),
+      br(),
+      br(),
+      "Per 1M inhabitants"
+    )
+  })
+  
   
 }

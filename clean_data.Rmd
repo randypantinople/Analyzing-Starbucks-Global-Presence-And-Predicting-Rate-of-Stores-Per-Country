@@ -81,6 +81,8 @@ names(star1) = tolower(names(star1))
 star1= rename(star1, code= 'country',
                    country ='country_name')
 
+
+
 head(star1)
 ```
 
@@ -88,17 +90,30 @@ head(star1)
 ```{r}
 data1 = read.csv('./data/world_population.csv', encoding="UTF-8", stringsAsFactors=FALSE)
 
+head(data1)
+
 data1$med_age= as.numeric(data1$med_age)
 
-
+data1$urban_prop= as.numeric(data1$urban_prop)
 
 star2=left_join(star1, data1, by='country')
+
+
+star2=star2 %>% 
+  mutate(density= population/land_area)
+        
+
+
+
+
+
 head(star2)
 ```
 
 
+
 ```{r}
-data2 = read.csv('./data/gdp_nominal.csv', encoding="UTF-8", stringsAsFactors=FALSE)
+data2 = read.csv('./data/gdp_per_capita.csv', encoding="UTF-8", stringsAsFactors=FALSE)
 
 
 data2 = rename(data2, "country"=X.U.FEFF.country)
@@ -108,6 +123,10 @@ head(data2)
 
 ```{r}
 star3=left_join(star2, data2, by='country')
+
+star3= star3 %>% 
+  mutate(gdp= gdp_per_capita*population)
+
 
 head(star3)
 
@@ -123,20 +142,30 @@ data3 = rename(data3, "country"=X.U.FEFF.country)
 
 star4=left_join(star3, data3, by='country')
 
-head(star4)
+
+
+star4 = star4 %>% 
+  mutate(region=ifelse(country=='United States', "US","International"))
+                       
+                       
+        
+
+
 
 ```
+
+
 
 
 ```{r}
 data4 = read.csv('./data/urban_pop.csv', encoding="UTF-8", stringsAsFactors=FALSE)
 
-head(data4)
-
 data4 = rename(data4, "country"=X.U.FEFF.country)
 
 star5=left_join(star4, data4, by='country')
-head(data4)
+
+head(star5)
+
 
 ```
 
