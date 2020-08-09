@@ -32,10 +32,9 @@ starbucks = read.csv('./data/starbucks2.csv', stringsAsFactors=FALSE)
 ```{r}
 starbucks$store_count = rep(1, dim(starbucks)[1])
 
-star1= starbucks%>% 
-  select(c(-Postcode, -Phone.Number))
+
   
-head(star1)
+head(starbucks)
 ```
 
 ```{r}
@@ -72,32 +71,35 @@ head(code, 5)
 
 ```{r}
 #Merge code and starbucks so we can have a complete for the country
-star2= full_join(star1, code, by='Country')
+star1= full_join(starbucks, code, by='Country')
 
-star3= star2 %>% 
+star1= star1 %>% 
   mutate(store_count= ifelse(is.na(store_count), 0, store_count))
 
-names(star3) = tolower(names(star3))
+names(star1) = tolower(names(star1))
 
-star3= rename(star3, code= 'country',
+star1= rename(star1, code= 'country',
                    country ='country_name')
 
-
-```
-
-
-```{r}
-data1 = read.csv('./data/urban_pop.csv', encoding="UTF-8", stringsAsFactors=FALSE)
-
-data1 = rename(data1, "country"=X.U.FEFF.country)
-
-star4=left_join(star3, data1, by='country')
 head(star1)
 ```
 
 
 ```{r}
-data2 = read.csv('./data/gdp_per_capita.csv', encoding="UTF-8", stringsAsFactors=FALSE)
+data1 = read.csv('./data/world_population.csv', encoding="UTF-8", stringsAsFactors=FALSE)
+
+data1$med_age= as.numeric(data1$med_age)
+
+
+
+star2=left_join(star1, data1, by='country')
+head(star2)
+```
+
+
+```{r}
+data2 = read.csv('./data/gdp_nominal.csv', encoding="UTF-8", stringsAsFactors=FALSE)
+
 
 data2 = rename(data2, "country"=X.U.FEFF.country)
 head(data2)
@@ -105,9 +107,9 @@ head(data2)
 
 
 ```{r}
-star5=left_join(star4, data2, by='country')
+star3=left_join(star2, data2, by='country')
 
-head(star5)
+head(star3)
 
 ```
 
@@ -119,29 +121,29 @@ data3 = read.csv('./data/business.csv', encoding="UTF-8", stringsAsFactors=FALSE
 data3 = rename(data3, "country"=X.U.FEFF.country)
 
 
-star6=left_join(star5, data3, by='country')
+star4=left_join(star3, data3, by='country')
 
-head(star6)
-
-```
-```{r}
-data4 = read.csv('./data/median.csv', encoding="UTF-8", stringsAsFactors=FALSE)
-
-star7=left_join(star6, data4, by='country')
+head(star4)
 
 ```
-
 
 
 ```{r}
-write.csv(star7, "./data/star.csv")
+data4 = read.csv('./data/urban_pop.csv', encoding="UTF-8", stringsAsFactors=FALSE)
+
+head(data4)
+
+data4 = rename(data4, "country"=X.U.FEFF.country)
+
+star5=left_join(star4, data4, by='country')
+head(data4)
+
 ```
+
 
 ```{r}
-revenue= read.csv("./data/revenue.csv", encoding = 'UTF-8', stringsAsFactors = F)
-
-revenue = rename(revenue, year="X.U.FEFF.year")
-
-write.csv(revenue, "./data/revenue.csv")
+write.csv(star5, "./data/star.csv")
 ```
+
+
 

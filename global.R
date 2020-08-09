@@ -15,6 +15,7 @@ star = read.csv('./data/star.csv',encoding = "UTF-8", stringsAsFactors = F)
 
 star1=star %>% 
   filter(store_count>0)
+  
 
 
 
