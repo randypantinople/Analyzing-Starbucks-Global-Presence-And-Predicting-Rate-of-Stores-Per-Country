@@ -25,7 +25,7 @@ function(input,output){
     )
   })
   
-  
+  #Home world map
   output$plot1 = renderGvis({
     df_star = star %>% 
       filter(store_count>0) %>% 
@@ -36,12 +36,12 @@ function(input,output){
    gvisGeoChart(data=df_star,
                 locationvar = "country",
                 sizevar = 'num_store',
-                options=list(width=800,
+                options=list(width=800,                       
                              height=600))
               
   })
   
-  
+  # Home bar graph showing the top countries
   output$home_bar = renderGvis({
     
     home_bar=star%>% 
@@ -60,7 +60,7 @@ function(input,output){
     
   })
   
-  
+  #Explore tab, boxplots
   output$box= renderPlotly({
     
     home_box = star %>% 
@@ -78,7 +78,7 @@ function(input,output){
 })
   
   
-  
+  #Explore tab bar graph for top cities
   output$bar= renderGvis({
     bar_city = star %>% 
       filter( country==input$selected) %>% 
@@ -97,7 +97,7 @@ function(input,output){
                               )
     )
   })
-  
+  #Explore info box for number of stores in a country
   output$country = renderUI({
     nation= star%>% 
       filter(country==input$selected) %>% 
@@ -111,6 +111,7 @@ function(input,output){
     )
   })
   
+  #Explore tab info box for number of cities for each country
   output$num_city = renderUI({
     city= star %>% 
       filter(country==input$selected) 
@@ -125,6 +126,7 @@ function(input,output){
     )
   })
   
+  #Explore tab for the number of stores for every 1 million people
   output$store_urban_pop = renderUI({
     
     urban= star%>% 
@@ -148,7 +150,7 @@ function(input,output){
       filter(store_count>0) %>% 
       group_by(country, gdp_per_capita, population) %>% 
       summarise(num_store=sum(store_count)) %>% 
-      mutate(store_rate= (num_store*1e6)/population) 
+      mutate(store_rate= num_store/population) 
     
     
     model_lm = lm(store_rate~gdp_per_capita , data=model)
@@ -165,10 +167,10 @@ function(input,output){
   output$population = renderPlotly({
     
     model =star %>%
-      filter(store_count>0) %>% 
+     filter(store_count>0) %>% 
       group_by(country,  population) %>% 
       summarise(num_store=sum(store_count)) %>% 
-      mutate(store_rate= (num_store*1e6)/population) 
+      mutate(store_rate= num_store/population) 
     
     model_lm = lm(store_rate~population , data=model)
     
@@ -291,6 +293,28 @@ function(input,output){
                theme(plot.title = element_text(hjust = 0.5, size=20)))
   })
   
+  output$linear_continent= renderPlotly({
+    
+    model =star %>%
+      filter(store_count>0, continent!="Oceania") %>% 
+      group_by(country,continent,gdp_per_capita, population) %>% 
+      summarise(num_store=sum(store_count)) %>% 
+      mutate(store_rate= num_store/population) 
+    
+    model_lm = lm(store_rate~gdp_per_capita+ continent+ population , data=model) 
+    
+    
+    ggplotly(ggplot(data =model_lm, aes(x=continent, y=model_lm$residuals), fill=continent)+
+               geom_boxplot()+
+               xlab("continent")+
+               ylab("residuals")+
+               ggtitle("Continent vs Residuals"))
+      
+      
+             
+               
+  })
+  
   
  
   
@@ -355,30 +379,28 @@ function(input,output){
     df= star1 %>% 
       filter(country==input$pick)
     
-    gdp= df$gdp_per_capita
-    pop= df$population
-    region= df$continent
+    gdp= unique(df$gdp_per_capita)
+    pop= unique(df$population)
+    region= unique(df$continent)
       
-      box(
-        input$pick,
+      box(h1(strong(input$pick)), width=10,
+          br(),
+        h3(paste("GDP per Capita", gdp , sep=" :")),
         br(),
+        h3(paste("Population", pop, sep=" :")),
         br(),
-        paste("GDP per Capita", gdp , sep=" :"),
-        br(),
-        br(),
-        paste("Population", pop, sep=" :"),
-        br(),
-        br(),
-        paste("Continent", region, sep= " :"))
+        h3(paste("Continent", region, sep= " :")))
+      
   })
   
   output$result = renderUI({
     df= star1 %>% 
       filter(country==input$pick)
+     
     
-    gdp= df$gdp_per_capita
-    pop= df$population
-    region= df$continent
+    gdp= unique(df$gdp_per_capita)
+    pop= unique(df$population)
+    region= unique(df$continent)
     
    df_predict= data.frame(gdp_per_capita=gdp, population=pop, continent=region)
   
@@ -391,16 +413,17 @@ function(input,output){
    
    model_lm = lm(store_rate~gdp_per_capita+ continent + population, data=model) 
    
-   result = predict(model_lm, df_predict)* 1e6
+   result = round(predict(model_lm, df_predict)* 1e6, 2)
+   result
     
     box(
-      h1(strong("Prediction")),
+      h1(strong("Prediction")), width=10,
       br(),
       br(),
-      paste(result , " Stores" , sep=":"),
+      h3(paste(result , " Stores" , sep=":")),
       br(),
       br(),
-      "Per 1M inhabitants"
+      h3("Per 1M inhabitants")
     )
   })
   

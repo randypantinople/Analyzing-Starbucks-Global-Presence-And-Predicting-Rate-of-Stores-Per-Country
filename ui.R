@@ -1,13 +1,11 @@
 library(shinydashboard)
 
 shinyUI(dashboardPage(skin='green',
-  dashboardHeader(title=h2(strong('Analysis and Prediction of Starbucks Global Presence')),
+  dashboardHeader(title=h3(strong('Analysis Of Starbucks Global Presence and Prediction Of Store Rates')),
                   titleWidth = 800
                
                  ),
- 
-  
-  
+
   dashboardSidebar(
     sidebarMenu(
       menuItem('Home', tabName = 'home', icon =icon('home')),
@@ -93,23 +91,21 @@ shinyUI(dashboardPage(skin='green',
               )),
       
       tabItem(tabName = "correlation",
-              fluidRow(
-                br(),
-                br(),
-                column(6,
-                       plotlyOutput("gdp")),
-                column(6,
-                       plotlyOutput("population"))),
+              fluidRow( 
+                h3(strong("Check for a linear relationhsip between target variable and each predictors")),
+               
+                       box(plotlyOutput("gdp")),
+               
+                       box(plotlyOutput("population"))),
               br(),
-              br(),
-              
+             
               fluidRow(
-                column(4,
-                       plotlyOutput("med_age")),
-                column(4,
-                       plotlyOutput("density")),
-                column(4,
-                       plotlyOutput("bus_score")))
+                       column(4,
+                         plotlyOutput("med_age")),
+                       column(4,
+                          plotlyOutput("density")),
+                       column(4,
+                        plotlyOutput("bus_score"))),
               
       ),
       
@@ -117,7 +113,7 @@ shinyUI(dashboardPage(skin='green',
               fluidRow(
                 br(),
                 br(),
-                
+                h3(strong("Pairwise correlation between target and predictor variables")),
                 plotOutput("coll")
               )),
              
@@ -130,7 +126,7 @@ shinyUI(dashboardPage(skin='green',
                 column(6,
                   h3(strong("Step 1: Full Model"),
                          br(),
-                         "store rate = -2.500e-5",
+                         "store_rate = -2.500e-5",
                          br(),
                                   "1.625e-10 gdp",
                         br(),
@@ -183,7 +179,7 @@ shinyUI(dashboardPage(skin='green',
                 column(4,
                        h3(strong("Step 1: Fit GDP"),
                           br(),
-                          "num_store = -1.15",
+                          "store_rate = -1.15",
                           br(),
                           "+2.11e-4gdp",
                        br(),
@@ -193,7 +189,7 @@ shinyUI(dashboardPage(skin='green',
                 column(4,
                       h3(strong("Step 2: Add Continent"),
                          br(),
-                         "num_store = -2.57",
+                         "store_rate = -2.57",
                          br(),
                           "+2.62e-4 gdp",
                          br(),
@@ -213,7 +209,7 @@ shinyUI(dashboardPage(skin='green',
                 column(4,
                        h3(strong("Step 3: Add Population"),
                           br(),
-                          "store rate = -2.687e-6",
+                          "store_rate = -2.687e-6",
                           br(),
                           "2.64e-10 gdp",
                           br(),
@@ -235,14 +231,22 @@ shinyUI(dashboardPage(skin='green',
           
       tabItem(tabName="linear",
               fluidRow(
-                column(6,
+                br(),
+                h3(strong("Linear Relationship Between Predictors and Target Variable")),
+                br(),
+                column(4,
                        plotlyOutput("linear_gdp")),
-                column(6,
-                       plotlyOutput("linear_pop")))),
+                column(4,
+                       plotlyOutput("linear_pop")),
+                column(4,
+                       plotlyOutput("linear_continent")))),
               
       
       tabItem(tabName = "normal",
               fluidRow(
+                br(),
+                h3(strong("Nearly Normal Residuals")),
+                br(),
                 column(6,
                        plotlyOutput("normal_hist")),
                 column(6,
@@ -250,9 +254,11 @@ shinyUI(dashboardPage(skin='green',
       
       tabItem(tabName="variance",
               fluidRow(
+                h3(strong("Constant Variability of Residuals")),
                 br(),
                 br(),
-                plotlyOutput("vary")
+                column(6,
+                plotlyOutput("vary"))
               )),
       
       tabItem(tabName = "predict",
@@ -260,7 +266,7 @@ shinyUI(dashboardPage(skin='green',
               fluidRow(
               column(4,
                      selectizeInput(inputId='pick',
-                                    label='Select a country',
+                                    label=h3(strong('Select a country')),
                                     choices=unique(star1$country))),
               column(4,
                      uiOutput("info")),
@@ -268,12 +274,26 @@ shinyUI(dashboardPage(skin='green',
               column(4,
                      uiOutput("result")))),
       
-      
-              
-            
-                     
-      
-    
+      tabItem(tabName = "me",
+              br(),
+              br(),
+              fluidRow(
+                column(4,
+                       img(src="my_pic.jpg", width="70%")),
+                br(),
+                "Randy was a high school math and physics teacher for 16 years.",
+                br(),
+                "He got his masters degree in Physics Education at the", 
+                br(),
+                "University of Southeastern Philippines.",
+                br(),
+                "His passion about trends, predictions, and data driven", 
+                br(),
+                "decisions led him to pursue a career in Data Science.",
+                br(),
+                "He is currently studying Data Science at NYC Data Science Academy",
+                br(),
+                "and will join Georgia Tech for the MS in Analytics program this fall."
                 
               ))
   
@@ -282,4 +302,5 @@ shinyUI(dashboardPage(skin='green',
     )
     
   )
-
+)
+)
